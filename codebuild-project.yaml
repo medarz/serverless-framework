@@ -1,15 +1,10 @@
+WSTemplateFormatVersion: '2010-09-09'
 
-AWSTemplateFormatVersion: '2010-09-09'
-
-Description: Crea un pipeline para Serverless Framework
+Description: Crea un proyecto Serverless en CodeBuild
 
 ## ***************************** Parameters section ************************************
 Parameters:
 
-  Account:
-    Description: "Account to be deployed"
-    Type: String
-    
   Env:
     Description: "Environment"
     Type: String
@@ -96,4 +91,3 @@ Resources:
             Resource: "*"
       Roles:
         - !Ref CodeBuildRole
-
