@@ -1,0 +1,99 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Crea un pipeline para Serverless Framework
+
+## ***************************** Parameters section ************************************
+Parameters:
+
+  Account:
+    Description: "Account to be deployed"
+    Type: String
+    
+  Env:
+    Description: "Environment"
+    Type: String
+
+## ***************************** Resources section ************************************
+Resources:
+
+#############################################################################
+# CodeBuild: BuildProject
+# - Valida que los archivos de configuracion tengan estructura JSON adecuada
+  Serverless:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/nodejs:8.11.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: Env
+            Value: !Sub ${Env}
+      Name: !Sub '${AWS::StackName}-${Env}'
+      ServiceRole: !Ref CodeBuildRole
+      Source:
+        BuildSpec: !Sub |
+            version: 0.2
+            phases:
+              install:
+                commands:
+                  - npm install
+                  - npm install -g serverless
+              build:
+                commands:
+                  - sls deploy --stage $Env -v
+        Type: CODEPIPELINE
+
+############################################################################
+# Role: IAM Role
+# -  Role required for CodeBuild
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  CodeBuildPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-codebuild-policy"
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Action:
+              - logs:*
+              - codebuild:*
+              - cloudformation:ValidateTemplate
+            Resource: "*"
+          -
+            Effect: Allow
+            Action:
+              - iam:GetRole
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:DeleteRole
+              - iam:PassRole
+            Resource: "*"
+          -
+            Effect: Allow
+            Action:
+              - s3:*
+            Resource: "*"
+      Roles:
+        - !Ref CodeBuildRole
+
