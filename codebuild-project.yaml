@@ -9,6 +9,10 @@ Parameters:
     Description: "Environment"
     Type: String
 
+  CMKARN:
+    Description: "ARN of the KMS CMK in Prod account"
+    Type: String
+    
 ## ***************************** Resources section ************************************
 Resources:
 
@@ -27,7 +31,7 @@ Resources:
         EnvironmentVariables:
           - Name: Env
             Value: !Sub ${Env}
-            
+
       Name: !Sub '${AWS::StackName}-${Env}'
       ServiceRole: !Ref CodeBuildRole
       Source:
@@ -90,5 +94,10 @@ Resources:
             Action:
               - s3:*
             Resource: "*"
+          -
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Ref CMKARN
       Roles:
         - !Ref CodeBuildRole
