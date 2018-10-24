@@ -12,7 +12,7 @@ Parameters:
   CMKARN:
     Description: "ARN of the KMS CMK in Prod account"
     Type: String
-    
+
 ## ***************************** Resources section ************************************
 Resources:
 
@@ -72,6 +72,23 @@ Resources:
       PolicyDocument:
         Version: 2012-10-17
         Statement:
+        -
+          Effect: Allow
+          Action:
+            - cloudformation:Describe*
+            - cloudFormation:List*
+            - cloudformation:CreateStack
+            - cloudformation:DeleteStack
+            - cloudformation:DescribeStacks
+            - cloudformation:UpdateStack
+            - cloudformation:CreateChangeSet
+            - cloudformation:DeleteChangeSet
+            - cloudformation:DescribeChangeSet
+            - cloudformation:ExecuteChangeSet
+            - cloudformation:SetStackPolicy
+            - cloudformation:ValidateTemplate
+          Resource:
+            - "*"
           -
             Effect: Allow
             Action:
