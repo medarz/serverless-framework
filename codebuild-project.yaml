@@ -1,4 +1,4 @@
-WSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: '2010-09-09'
 
 Description: Crea un proyecto Serverless en CodeBuild
 
@@ -27,6 +27,7 @@ Resources:
         EnvironmentVariables:
           - Name: Env
             Value: !Sub ${Env}
+            
       Name: !Sub '${AWS::StackName}-${Env}'
       ServiceRole: !Ref CodeBuildRole
       Source:
