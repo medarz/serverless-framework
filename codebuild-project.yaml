@@ -94,6 +94,7 @@ Resources:
             Action:
               - logs:*
               - codebuild:*
+              - lambda:*
               - cloudformation:ValidateTemplate
             Resource: "*"
           -
