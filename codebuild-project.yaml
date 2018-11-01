@@ -14,12 +14,12 @@ Parameters:
     Type: String
 
 ## ***************************** Resources section ************************************
-Resources:
 
+Resources:
 #############################################################################
 # CodeBuild: BuildProject
-# - Valida que los archivos de configuracion tengan estructura JSON adecuada
-  Serverless:
+# - Utiliza serverless framework para hacer despliegue de funciones serverless
+  serverless:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -31,8 +31,7 @@ Resources:
         EnvironmentVariables:
           - Name: Env
             Value: !Sub ${Env}
-
-      Name: !Sub '${AWS::StackName}-${Env}'
+      Name: !Sub '${AWS::StackName}'
       ServiceRole: !Ref CodeBuildRole
       Source:
         BuildSpec: !Sub |
@@ -44,8 +43,22 @@ Resources:
                   - npm install -g serverless
               build:
                 commands:
-                  - sls deploy --stage $Env -v
+                 - echo "Environment: $Env"
+                 - |
+                   if [[ $env = "dev" ]]; then
+                      npm run-script lint
+                      npm test
+                   fi
+                 - sls deploy --stage $Env -v
+              post_build:
+                commands:
+                 - |
+                   if [[ $env = "dev" ]]; then
+                      echo "Cleaning up"
+                      sls remove --stage $Env -v
+                   fi
         Type: CODEPIPELINE
+
 
 ############################################################################
 # Role: IAM Role
@@ -53,6 +66,7 @@ Resources:
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: "CodeBuild-Serverless-Role"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -119,3 +133,11 @@ Resources:
             Resource: !Ref CMKARN
       Roles:
         - !Ref CodeBuildRole
+
+# ********* Output section *********
+Outputs:
+
+    CBProject:
+      Value: !Ref serverless
+      Export:
+        Name: "CB-serverless"
