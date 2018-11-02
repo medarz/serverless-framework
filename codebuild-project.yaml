@@ -37,7 +37,7 @@ Resources:
         EnvironmentVariables:
           - Name: Env
             Value: !Sub ${Env}
-      Name: !Sub '${AWS::StackName}-${Env}'
+      Name: !Sub '${AWS::StackName}'
       ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/codebuild-serverless-role
       Source:
         BuildSpec: !Sub |
@@ -68,7 +68,7 @@ Resources:
         EnvironmentVariables:
           - Name: Env
             Value: !Sub ${Env}
-      Name: !Sub '${AWS::StackName}-${Env}'
+      Name: !Sub '${AWS::StackName}'
       ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/codebuild-serverless-role
       Source:
         BuildSpec: !Sub |
