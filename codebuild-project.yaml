@@ -13,14 +13,21 @@ Parameters:
     Description: "ARN of the KMS CMK in Prod account"
     Type: String
 
+## ***************************** Conditions section ************************************
+Conditions:
+  IsDev: !Equals [ !Ref Env, dev ]
+  IsNotDev: !Not [ Condition:  IsDev ]
+  IsNotQA: !Not [ !Equals [ !Ref Env, qa ]]
+
 ## ***************************** Resources section ************************************
 
 Resources:
 #############################################################################
-# CodeBuild: BuildProject
+# CodeBuild: BuildProject: QA y Prod
 # - Utiliza serverless framework para hacer despliegue de funciones serverless
   serverless:
     Type: AWS::CodeBuild::Project
+    Condition: IsNotDev
     Properties:
       Artifacts:
         Type: CODEPIPELINE
@@ -31,7 +38,38 @@ Resources:
         EnvironmentVariables:
           - Name: Env
             Value: !Sub ${Env}
-      Name: !Sub '${AWS::StackName}'
+      Name: !Sub '${AWS::StackName}-${Env}'
+      ServiceRole: !Ref CodeBuildRole
+      Source:
+        BuildSpec: !Sub |
+            version: 0.2
+            phases:
+              install:
+                commands:
+                  - npm install
+                  - npm install -g serverless
+              build:
+                commands:
+                  - sls deploy --stage $Env -v
+        Type: CODEPIPELINE
+
+#############################################################################
+# CodeBuild: BuildProject: QA y Prod
+# - Utiliza serverless framework para hacer despliegue de funciones serverless
+  serverlessTest:
+    Type: AWS::CodeBuild::Project
+    Condition: IsDev
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/nodejs:8.11.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: Env
+            Value: !Sub ${Env}
+      Name: !Sub '${AWS::StackName}-${Env}'
       ServiceRole: !Ref CodeBuildRole
       Source:
         BuildSpec: !Sub |
@@ -44,27 +82,23 @@ Resources:
               build:
                 commands:
                  - echo "Environment: $Env"
-                 - |
-                   if [[ $env = "dev" ]]; then
-                      npm run-script lint
-                      npm test
-                   fi
+                 - npm run-script lint
+                 - npm test
                  - sls deploy --stage $Env -v
               post_build:
                 commands:
-                 - |
-                   if [[ $env = "dev" ]]; then
-                      echo "Cleaning up"
-                      sls remove --stage $Env -v
-                   fi
+                 - echo "Cleaning up"
+                 - sls remove --stage $Env -v
         Type: CODEPIPELINE
-
 
 ############################################################################
 # Role: IAM Role
 # -  Role required for CodeBuild
+# Nota: El rol no se creara en QA ya que es la misma cuenta que Dev
+
   CodeBuildRole:
     Type: AWS::IAM::Role
+    Condition: IsNotQA
     Properties:
       RoleName: "CodeBuild-Serverless-Role"
       AssumeRolePolicyDocument:
@@ -81,6 +115,7 @@ Resources:
 
   CodeBuildPolicy:
     Type: AWS::IAM::Policy
+    Condition: IsNotQA
     Properties:
       PolicyName: !Sub "${AWS::StackName}-codebuild-policy"
       PolicyDocument:
@@ -133,11 +168,3 @@ Resources:
             Resource: !Ref CMKARN
       Roles:
         - !Ref CodeBuildRole
-
-# ********* Output section *********
-Outputs:
-
-    CBProject:
-      Value: !Ref serverless
-      Export:
-        Name: "CB-serverless"
