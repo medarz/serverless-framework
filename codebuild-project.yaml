@@ -17,7 +17,6 @@ Parameters:
 Conditions:
   IsDev: !Equals [ !Ref Env, dev ]
   IsNotDev: !Not [ Condition:  IsDev ]
-  IsNotQA: !Not [ !Equals [ !Ref Env, qa ]]
 
 ## ***************************** Resources section ************************************
 
@@ -39,7 +38,7 @@ Resources:
           - Name: Env
             Value: !Sub ${Env}
       Name: !Sub '${AWS::StackName}-${Env}'
-      ServiceRole: !Ref CodeBuildRole
+      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/codebuild-serverless-role
       Source:
         BuildSpec: !Sub |
             version: 0.2
@@ -70,7 +69,7 @@ Resources:
           - Name: Env
             Value: !Sub ${Env}
       Name: !Sub '${AWS::StackName}-${Env}'
-      ServiceRole: !Ref CodeBuildRole
+      ServiceRole: !Sub arn:aws:iam::${AWS::AccountId}:role/codebuild-serverless-role
       Source:
         BuildSpec: !Sub |
             version: 0.2
