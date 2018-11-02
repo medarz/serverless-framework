@@ -82,7 +82,7 @@ Resources:
                 commands:
                  - echo "Environment: $Env"
                  - npm run-script lint
-                 - npm test
+                 # - npm test
                  - sls deploy --stage $Env -v
               post_build:
                 commands:
