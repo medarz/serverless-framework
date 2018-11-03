@@ -80,7 +80,6 @@ Resources:
                   - npm install -g serverless
               build:
                 commands:
-                 - echo "Environment: $Env"
                  - npm run-script lint
                  - sls deploy --stage $Env -v
               post_build:
